@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}{{ patient.name }} - 病人詳情 - 簡易HIS系統{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2><i class="fas fa-user"></i> 病人詳情</h2>
+    <div class="page-actions">
+        <a href="{{ url_for('index') }}" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> 返回列表
+        </a>
+        <a href="{{ url_for('add_patient') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> 新增病人
+        </a>
+    </div>
+</div>
+
+<div class="patient-detail">
+    <div class="patient-detail-header">
+        <div class="patient-avatar">
+            {% if patient.gender == '男' %}
+                <i class="fas fa-male"></i>
+            {% elif patient.gender == '女' %}
+                <i class="fas fa-female"></i>
+            {% else %}
+                <i class="fas fa-user"></i>
+            {% endif %}
+        </div>
+        <div class="patient-basic-info">
+            <h1>{{ patient.name }}</h1>
+            <p class="patient-id">病人ID: {{ patient.id }}</p>
+        </div>
+    </div>
+
+    <div class="patient-detail-content">
+        <div class="detail-section">
+            <h3><i class="fas fa-info-circle"></i> 基本資料</h3>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <label>姓名</label>
+                    <span>{{ patient.name }}</span>
+                </div>
+                <div class="detail-item">
+                    <label>性別</label>
+                    <span>
+                        {% if patient.gender == '男' %}
+                            <i class="fas fa-male"></i> 男
+                        {% elif patient.gender == '女' %}
+                            <i class="fas fa-female"></i> 女
+                        {% else %}
+                            <i class="fas fa-user"></i> 其他
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="detail-item">
+                    <label>年齡</label>
+                    <span>{{ patient.age }} 歲</span>
+                </div>
+                <div class="detail-item">
+                    <label>建立時間</label>
+                    <span>{{ patient.created_at }}</span>
+                </div>
+            </div>
+        </div>
+
+        {% if patient.diagnosis %}
+        <div class="detail-section">
+            <h3><i class="fas fa-stethoscope"></i> 診斷資訊</h3>
+            <div class="diagnosis-content">
+                <p>{{ patient.diagnosis }}</p>
+            </div>
+        </div>
+        {% else %}
+        <div class="detail-section">
+            <h3><i class="fas fa-stethoscope"></i> 診斷資訊</h3>
+            <div class="no-diagnosis">
+                <i class="fas fa-clipboard-list"></i>
+                <p>尚未填寫診斷說明</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="detail-section">
+            <h3><i class="fas fa-history"></i> 系統資訊</h3>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <label>病人ID</label>
+                    <span class="patient-id-full">{{ patient.id }}</span>
+                </div>
+                <div class="detail-item">
+                    <label>資料建立時間</label>
+                    <span>{{ patient.created_at }}</span>
+                </div>
+                <div class="detail-item">
+                    <label>資料狀態</label>
+                    <span class="status-active">
+                        <i class="fas fa-check-circle"></i> 正常
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="patient-actions">
+    <button onclick="copyPatientId()" class="btn btn-outline">
+        <i class="fas fa-copy"></i> 複製病人ID
+    </button>
+    <a href="{{ url_for('add_patient') }}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> 新增另一位病人
+    </a>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function copyPatientId() {
+    const patientId = '{{ patient.id }}';
+    navigator.clipboard.writeText(patientId).then(function() {
+        // 建立臨時提示
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerHTML = '<i class="fas fa-check"></i> 病人ID已複製到剪貼簿';
+        document.body.appendChild(toast);
+        
+        setTimeout(function() {
+            toast.remove();
+        }, 2000);
+    }).catch(function(err) {
+        console.error('複製失敗: ', err);
+        alert('複製失敗，請手動複製病人ID: ' + patientId);
+    });
+}
+</script>
+{% endblock %}
