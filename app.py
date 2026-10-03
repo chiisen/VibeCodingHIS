@@ -1,9 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
 from datetime import datetime
+import os
 import uuid
 
+from flask import Flask, render_template, request, redirect, url_for, flash
+
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-here'  # 用於flash消息
+app.secret_key = os.environ.get('SECRET_KEY', 'dev-only-change-this-secret-key')
 
 # 記憶體資料結構模擬資料庫
 patients = [
@@ -45,12 +47,24 @@ def add_patient():
         # 獲取表單資料
         name = request.form.get('name', '').strip()
         age = request.form.get('age', '').strip()
-        gender = request.form.get('gender', '')
+        gender = request.form.get('gender', '').strip()
         diagnosis = request.form.get('diagnosis', '').strip()
         
         # 驗證必填欄位
         if not name or not age or not gender:
             flash('姓名、年齡和性別為必填欄位！', 'error')
+            return render_template('add_patient.html')
+
+        if len(name) > 100:
+            flash('姓名不可超過100個字！', 'error')
+            return render_template('add_patient.html')
+
+        if gender not in {'男', '女', '其他'}:
+            flash('請選擇有效的性別！', 'error')
+            return render_template('add_patient.html')
+
+        if len(diagnosis) > 1000:
+            flash('診斷說明不可超過1000個字！', 'error')
             return render_template('add_patient.html')
         
         # 驗證年齡為數字
@@ -91,8 +105,7 @@ def patient_detail(patient_id):
             break
     
     if not patient:
-        flash('找不到指定的病人資料！', 'error')
-        return render_template('error.html', message='病人不存在')
+        return render_template('error.html', message='病人不存在'), 404
     
     return render_template('patient_detail.html', patient=patient)
 
@@ -107,4 +120,5 @@ def internal_error(error):
     return render_template('error.html', message='伺服器內部錯誤'), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    debug = os.environ.get('FLASK_DEBUG', '').lower() in {'1', 'true', 'yes'}
+    app.run(debug=debug, host=os.environ.get('HOST', '127.0.0.1'), port=5000)
